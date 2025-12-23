@@ -1,21 +1,46 @@
-#!/usr/bin/env bash
+#!/bin/bash
+set -e
 
-# Create the user account
-if ! id ubuntu >/dev/null 2>&1; then
-    groupadd --gid 1020 ubuntu
-    useradd --shell /bin/bash --uid 1020 --gid 1020 --groups sudo --password "$(openssl passwd ubuntu)" --create-home --home-dir /home/ubuntu ubuntu
+# Default configuration (can be overridden by ENV vars)
+# Using 1000 is generally standard for non-root users, but kept your 1020 default
+PUID=${PUID:-1020}
+PGID=${PGID:-1020}
+USERNAME=${USERNAME:-ubuntu}
+PASSWORD=${PASSWORD:-ubuntu}
+
+# 1. Create Group
+if ! getent group "$PGID" >/dev/null; then
+    groupadd --gid "$PGID" "$USERNAME"
 fi
 
-# Remove existing sesman/xrdp PID files to prevent rdp sessions hanging on container restart
-[ ! -f /var/run/xrdp/xrdp-sesman.pid ] || rm -f /var/run/xrdp/xrdp-sesman.pid
-[ ! -f /var/run/xrdp/xrdp.pid ] || rm -f /var/run/xrdp/xrdp.pid
+# 2. Create User
+if ! id -u "$USERNAME" >/dev/null 2>&1; then
+    # Create user with specified UID/GID and add to sudo group
+    useradd --shell /bin/bash \
+            --uid "$PUID" \
+            --gid "$PGID" \
+            --groups sudo \
+            --create-home \
+            --home-dir "/home/$USERNAME" \
+            "$USERNAME"
+    
+    # Set password using chpasswd (avoids openssl dependency)
+    echo "$USERNAME:$PASSWORD" | chpasswd
+fi
 
-# Start xrdp sesman service
+# 3. Cleanup Stale PIDs
+# Prevents "Address already in use" errors on container restart
+rm -f /var/run/xrdp/xrdp-sesman.pid
+rm -f /var/run/xrdp/xrdp.pid
+
+# 4. Start Services
+echo "Starting xrdp-sesman..."
 /usr/sbin/xrdp-sesman
 
-# Run xrdp in foreground if no commands specified
 if [ -z "$1" ]; then
-    /usr/sbin/xrdp --nodaemon
+    echo "Starting xrdp..."
+    # Exec into xrdp so it receives unix signals (SIGTERM/SIGINT) correctly
+    exec /usr/sbin/xrdp --nodaemon
 else
     /usr/sbin/xrdp
     exec "$@"

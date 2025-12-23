@@ -1,19 +1,24 @@
-# Build xrdp pulseaudio modules in builder container
-# See https://github.com/neutrinolabs/pulseaudio-module-xrdp/wiki/README
+# syntax=docker/dockerfile:1
+
+# ----------------------------------------------------------------------------
+# Stage 1: Builder (No changes)
+# ----------------------------------------------------------------------------
 ARG TAG=noble
 FROM ubuntu:$TAG AS builder
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends \
         autoconf \
         build-essential \
         ca-certificates \
         dpkg-dev \
-        libpulse-dev \
-        lsb-release \
         git \
-        libtool \
         libltdl-dev \
+        libpulse-dev \
+        libtool \
+        lsb-release \
         sudo && \
     rm -rf /var/lib/apt/lists/*
 
@@ -25,42 +30,57 @@ RUN scripts/install_pulseaudio_sources_apt.sh && \
     make && \
     make install DESTDIR=/tmp/install
 
-
-# Build the final image
+# ----------------------------------------------------------------------------
+# Stage 2: Final Image
+# ----------------------------------------------------------------------------
 FROM ubuntu:$TAG
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+
+# 1. Install specific requirements for the Setup Phase
 RUN apt-get update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        wget \
+        sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Setup Mozilla Repo, Pinning, Install Desktop & Clean up
+RUN install -d -m 0755 /etc/apt/keyrings && \
+    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null && \
+    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" > /etc/apt/sources.list.d/mozilla.list && \
+    echo "Package: *" > /etc/apt/preferences.d/mozilla && \
+    echo "Pin: origin packages.mozilla.org" >> /etc/apt/preferences.d/mozilla && \
+    echo "Pin-Priority: 1000" >> /etc/apt/preferences.d/mozilla && \
+    \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         dbus-x11 \
-        git \
+        firefox \
+        iproute2 \
+        iputils-ping \
         locales \
         pavucontrol \
         pulseaudio \
         pulseaudio-utils \
-        software-properties-common \
-        sudo \
-        vim \
         x11-xserver-utils \
         xfce4 \
-        xfce4-goodies \
         xfce4-pulseaudio-plugin \
+        xfce4-terminal \
+        librsvg2-common \
         xorgxrdp \
         xrdp \
-        xubuntu-icon-theme && \
-    add-apt-repository -y ppa:mozillateam/ppa && \
-    echo "Package: *"  > /etc/apt/preferences.d/mozilla-firefox && \
-    echo "Pin: release o=LP-PPA-mozillateam" >> /etc/apt/preferences.d/mozilla-firefox && \
-    echo "Pin-Priority: 1001" >> /etc/apt/preferences.d/mozilla-firefox && \
-    apt-get update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends firefox && \
+    && \
+    locale-gen en_US.UTF-8 && \
+    apt-get purge -y --auto-remove wget && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    deluser --remove-home ubuntu && \
-    locale-gen en_US.UTF-8
+    userdel -r ubuntu
 
 COPY --from=builder /tmp/install /
 RUN sed -i 's|^Exec=.*|Exec=/usr/bin/pulseaudio|' /etc/xdg/autostart/pulseaudio-xrdp.desktop
 
-ENV LANG=en_US.UTF-8
 COPY entrypoint.sh /usr/bin/entrypoint
 EXPOSE 3389/tcp
 ENTRYPOINT ["/usr/bin/entrypoint"]
