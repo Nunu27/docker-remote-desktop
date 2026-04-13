@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ----------------------------------------------------------------------------
-# Stage 1: Builder (No changes)
+# Stage 1: Builder
 # ----------------------------------------------------------------------------
 ARG TAG=noble
 FROM ubuntu:$TAG AS builder
@@ -44,6 +44,7 @@ RUN apt-get update && \
         ca-certificates \
         wget \
         sudo \
+        jq \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Setup Mozilla Repo, Pinning, Install Desktop & Clean up
