@@ -44,7 +44,6 @@ RUN apt-get update && \
         ca-certificates \
         wget \
         sudo \
-        jq \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Setup Mozilla Repo, Pinning, Install Desktop & Clean up
@@ -72,6 +71,7 @@ RUN install -d -m 0755 /etc/apt/keyrings && \
         librsvg2-common \
         xorgxrdp \
         xrdp \
+        inotify-tools \
     && \
     locale-gen en_US.UTF-8 && \
     apt-get purge -y --auto-remove wget && \
