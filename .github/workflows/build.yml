@@ -53,6 +53,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta-desktop.outputs.tags }}
           labels: ${{ steps.meta-desktop.outputs.labels }}
+          cache-from: type=gha,scope=desktop
+          cache-to: type=gha,mode=max,scope=desktop
           build-args: |
             TAG=noble
 
@@ -76,3 +78,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta-ssh.outputs.tags }}
           labels: ${{ steps.meta-ssh.outputs.labels }}
+          cache-from: type=gha,scope=ssh
+          cache-to: type=gha,mode=max,scope=ssh
