@@ -11,6 +11,8 @@ RUN apt-get update && \
         openssh-server \
         sudo \
         locales \
+        iproute2 \
+        iputils-ping \
     && \
     locale-gen en_US.UTF-8 && \
     mkdir -p /var/run/sshd && \
