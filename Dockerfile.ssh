@@ -13,6 +13,7 @@ RUN apt-get update && \
         locales \
         iproute2 \
         iputils-ping \
+        iputils-tracepath \
     && \
     locale-gen en_US.UTF-8 && \
     mkdir -p /var/run/sshd && \

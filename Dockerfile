@@ -60,6 +60,7 @@ RUN install -d -m 0755 /etc/apt/keyrings && \
         firefox \
         iproute2 \
         iputils-ping \
+        iputils-tracepath \
         locales \
         pavucontrol \
         pulseaudio \
