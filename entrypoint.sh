@@ -5,8 +5,8 @@ set -e
 # Using 1000 is generally standard for non-root users, but kept your 1020 default
 PUID=${PUID:-1020}
 PGID=${PGID:-1020}
-USERNAME=${USERNAME:-ubuntu}
-PASSWORD=${PASSWORD:-ubuntu}
+USERNAME=${CLAB_USERNAME:-${USERNAME:-ubuntu}}
+PASSWORD=${CLAB_PASSWORD:-${PASSWORD:-ubuntu}}
 
 # 1. Create Group
 if ! getent group "$PGID" >/dev/null; then
@@ -23,10 +23,14 @@ if ! id -u "$USERNAME" >/dev/null 2>&1; then
             --create-home \
             --home-dir "/home/$USERNAME" \
             "$USERNAME"
-    
-    # Set password using chpasswd (avoids openssl dependency)
-    echo "$USERNAME:$PASSWORD" | chpasswd
 fi
+
+# Set password using chpasswd (avoids openssl dependency)
+echo "$USERNAME:$PASSWORD" | chpasswd
+
+# Security: Unset sensitive environment variables so they aren't inherited by child processes (e.g. user shells)
+unset CLAB_PASSWORD
+unset PASSWORD
 
 # 3. Cleanup Stale PIDs
 # Prevents "Address already in use" errors on container restart
