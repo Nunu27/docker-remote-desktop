@@ -32,12 +32,16 @@ echo "$USERNAME:$PASSWORD" | chpasswd
 unset CLAB_PASSWORD
 unset PASSWORD
 
-# 3. Cleanup Stale PIDs
+# 3. Configure xrdp security (avoid SSL handshake failures with OpenSSL 3.x)
+sed -i 's/security_layer=negotiate/security_layer=rdp/' /etc/xrdp/xrdp.ini
+sed -i 's/crypt_level=high/crypt_level=low/' /etc/xrdp/xrdp.ini
+
+# 4. Cleanup Stale PIDs
 # Prevents "Address already in use" errors on container restart
 rm -f /var/run/xrdp/xrdp-sesman.pid
 rm -f /var/run/xrdp/xrdp.pid
 
-# 4. Start Services
+# 5. Start Services
 echo "Starting xrdp-sesman..."
 /usr/sbin/xrdp-sesman
 
