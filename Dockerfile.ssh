@@ -15,12 +15,14 @@ RUN apt-get update && \
         iputils-ping \
         iputils-tracepath \
         inotify-tools \
+        readline-common \
     && \
     locale-gen en_US.UTF-8 && \
     mkdir -p /var/run/sshd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     userdel -r ubuntu || true
+
 
 COPY entrypoint-ssh.sh /usr/bin/entrypoint-ssh
 RUN chmod +x /usr/bin/entrypoint-ssh
