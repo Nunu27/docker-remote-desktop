@@ -3,8 +3,8 @@ set -e
 
 PUID=${PUID:-1020}
 PGID=${PGID:-1020}
-USERNAME=${CLAB_USERNAME:-${USERNAME:-ubuntu}}
-PASSWORD=${CLAB_PASSWORD:-${PASSWORD:-ubuntu}}
+USERNAME=${USERNAME:-ubuntu}
+PASSWORD=${PASSWORD:-ubuntu}
 
 # 1. Create Group
 if ! getent group "$PGID" >/dev/null; then
@@ -27,7 +27,6 @@ fi
 echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Security: Unset sensitive environment variables so they aren't inherited by child processes (e.g. user shells)
-unset CLAB_PASSWORD
 unset PASSWORD
 
 # 3. Start SSH daemon
