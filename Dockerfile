@@ -56,7 +56,9 @@ RUN install -d -m 0755 /etc/apt/keyrings && \
     \
     apt-get update && \
     apt-get install -y --no-install-recommends \
+        bind9-dnsutils \
         dbus-x11 \
+        dhcpcd-base \
         firefox \
         iproute2 \
         iputils-ping \
