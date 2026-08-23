@@ -16,6 +16,7 @@ RUN apt-get update && \
         iputils-tracepath \
         inotify-tools \
         readline-common \
+        isc-dhcp-client \
     && \
     locale-gen en_US.UTF-8 && \
     mkdir -p /var/run/sshd && \
