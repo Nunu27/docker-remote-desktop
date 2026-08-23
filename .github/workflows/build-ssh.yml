@@ -45,7 +45,8 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .\n          file: Dockerfile.ssh
+          context: .
+          file: Dockerfile.ssh
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=ssh-${{ matrix.safe_platform }}
@@ -90,7 +91,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=ssh-latest\n            type=schedule,pattern=ssh-{{date 'YYYYMMDD'}}\n            type=raw,value=ssh-ubuntu-noble\n            type=raw,value=ssh-ubuntu-24.04
+            type=raw,value=ssh-latest
+            type=schedule,pattern=ssh-{{date 'YYYYMMDD'}}
+            type=raw,value=ssh-ubuntu-noble
+            type=raw,value=ssh-ubuntu-24.04
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |

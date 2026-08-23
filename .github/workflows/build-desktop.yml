@@ -49,7 +49,9 @@ jobs:
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=desktop-${{ matrix.safe_platform }}
-          cache-to: type=gha,mode=max,scope=desktop-${{ matrix.safe_platform }}\n          build-args: |\n            TAG=noble
+          cache-to: type=gha,mode=max,scope=desktop-${{ matrix.safe_platform }}
+          build-args: |
+            TAG=noble
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -90,7 +92,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest\n            type=schedule,pattern={{date 'YYYYMMDD'}}\n            type=raw,value=ubuntu-noble\n            type=raw,value=ubuntu-24.04
+            type=raw,value=latest
+            type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=raw,value=ubuntu-noble
+            type=raw,value=ubuntu-24.04
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
